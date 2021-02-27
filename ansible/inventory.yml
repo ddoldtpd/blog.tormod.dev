@@ -1,0 +1,9 @@
+---
+deploy:
+  hosts:
+    localhost
+  vars:
+    app_name: blog
+    bucket_name: blog.tormod.dev
+    acm_arn: arn:aws:acm:us-east-1:467096703885:certificate/3ebeb672-608f-485c-b625-ac11eba47e62
+    ansible_python_interpreter: "{{ansible_playbook_python}}"

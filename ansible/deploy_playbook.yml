@@ -1,0 +1,25 @@
+---
+  - name: Local deploy playbook
+    hosts: deploy
+    connection: local
+    tasks:
+
+      - name: Launch {{ app_name }} cloudformation
+        cloudformation:
+          stack_name: "{{ app_name }}-tormod-dev-stack"
+          state: "present"
+          region: "eu-west-1"
+          disable_rollback: false
+          template: "../cfn/website.yml"
+          template_parameters:
+            BucketName: "{{ bucket_name }}"
+            DomainName: "{{ bucket_name }}"
+            ACMCertificate: "{{ acm_arn }}"
+          tags:
+            Stack: "{{ app_name }}-frontent"
+
+      # - name: Build SAM
+      #   command: "sam build ../portfolio-poc-api/portfolio-poc-api/"
+
+      # - name: Deploy SAM
+      #   command: "sam build ../portfolio-poc-api/portfolio-poc-api/"

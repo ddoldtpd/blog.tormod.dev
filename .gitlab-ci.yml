@@ -1,0 +1,32 @@
+stages:
+  - build-website
+  - deploy-website
+
+variables:
+  BUCKET_NAME: blog.tormod.dev
+  WEBSITE_URL: https://${BUCKET_NAME}/
+  CONTENT_FOLDER: build
+
+build-website:
+  image: node:13.5.0-alpine3.11
+  when: manual
+  stage: build-website
+  script:
+    - echo "Running... initiated by $GITLAB_USER_LOGIN!"
+    - cd blog && npm install -g -s --no-progress yarn && \
+      yarn && \
+      yarn run build && \
+      yarn cache clean
+
+deploy-website:
+  image: registry.gitlab.com/ddoldtpd-poc/aws-cli-boto3-image:latest
+  when: manual
+  stage: deploy-website
+  before_script:
+    - aws configure set aws_access_key_id $G_AWS_DEPLOY_WEBSITE_KEY_ID
+    - aws configure set aws_secret_access_key $G_AWS_DEPLOY_WEBSITE_SECRET
+  script:
+    - echo "Running... initiated by $GITLAB_USER_LOGIN!"
+    - aws s3 rm s3://${BUCKET_NAME}/ --recursive
+    - python3 ./scripts/upload_folder_to_s3.py $G_AWS_DEPLOY_WEBSITE_KEY_ID $G_AWS_DEPLOY_WEBSITE_SECRET $BUCKET_NAME $CONTENT_FOLDER
+    - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
